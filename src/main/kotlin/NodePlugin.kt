@@ -91,17 +91,19 @@ class NodePlugin : Plugin<Project> {
             }
 
             // Register package.json scripts as gradle tasks
-            val scripts = packageJson.get("scripts").asJsonObject
-            scripts.keySet().forEach { command ->
-                val taskName = command.toGradleName()
-                val task = project.tasks.register<NodeScriptTask>(taskName, command)
-                task.configure {
-                    if (extension.scriptsDependingOnNodeDevInstall.get().contains(taskName)) requiresDevDependencyInstall()
-                    else if (extension.scriptsDependingOnNodeInstall.get().contains(taskName)) requiresDependencyInstall()
-                    else if (extension.tasksDependingOnNodeInstallByDefault.get()) requiresDependencyInstall()
-                    group = extension.defaultTaskGroup.get()
-                    getNodeService().convention(serviceProvider)
-                    usesService(serviceProvider)
+            if (extension.autoCreateTasksFromPackageJsonScripts.get()) {
+                val scripts = packageJson.get("scripts").asJsonObject
+                scripts.keySet().forEach { command ->
+                    val taskName = command.toGradleName()
+                    val task = project.tasks.register<NodeScriptTask>(taskName, command)
+                    task.configure {
+                        if (extension.scriptsDependingOnNodeDevInstall.get().contains(taskName)) requiresDevDependencyInstall()
+                        else if (extension.scriptsDependingOnNodeInstall.get().contains(taskName)) requiresDependencyInstall()
+                        else if (extension.tasksDependingOnNodeInstallByDefault.get()) requiresDependencyInstall()
+                        group = extension.defaultTaskGroup.get()
+                        getNodeService().convention(serviceProvider)
+                        usesService(serviceProvider)
+                    }
                 }
             }
         }
